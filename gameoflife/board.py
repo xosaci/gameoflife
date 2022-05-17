@@ -1,6 +1,5 @@
 import numpy
 
-
 class Board:
     """
     Creates a squared board.
@@ -9,8 +8,9 @@ class Board:
     :param patch_shape: The shape of the patch which computes the number of neighbors.
     """
 
-    def __init__(self, board_shape: tuple = (100, 100), patch_shape: tuple = (3, 3)):
-        self._board = numpy.random.randint(2, size=board_shape, dtype=int)
+    def __init__(self, board_shape: tuple = (100, 100, 100), patch_shape: tuple = (3, 3, 3)):
+        self._board = numpy.random.randint(25, size=board_shape, dtype=numpy.int8)
+        self._board = numpy.where(self._board > 1, 0, self._board)
         self._patches_shape = patch_shape
 
     @property
@@ -24,12 +24,10 @@ class Board:
         If 2 or 3 pixels around a valid pixel are valid, then the pixel stays alive.
         If 3 pixels around an invalid pixel are valid, this pixel becomes alive.
         """
-        pix_by_ptch = numpy.sum(
-            numpy.lib.stride_tricks.sliding_window_view(
-                numpy.pad(self._board, self._patches_shape[0] // 2), self._patches_shape
-            ),
-            axis=(-1, -2),
-        )
-        self._board = ((pix_by_ptch == 3) & ~self._board) | (
-            (pix_by_ptch == 3) | (pix_by_ptch == 4)
-        ) & self._board
+        entry=numpy.pad(self._board, self._patches_shape[0] // 2)
+        pix_by_ptch = numpy.sum(numpy.lib.stride_tricks.sliding_window_view(entry, (3,3,3), axis=(-1,-2,-3)), axis=(-1,-2,-3))
+        self._board = (((pix_by_ptch == 4)) & ~self._board) | ((
+            (pix_by_ptch == 3)
+        ) & self._board)
+
+        #self._board = ((pix_by_ptch == 3))
